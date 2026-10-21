@@ -6,13 +6,13 @@ Create endpoints in the dashboard (Webhooks). The URL must be HTTPS on a public 
 
 ```json
 {
-  "id": "evt_01m5…",
-  "type": "email.delivered",
-  "created_at": "2026-10-18T14:03:22Z",
-  "data": {
-    "email_id": "em_01m5…",
-    "status": "delivered"
-  }
+    "id": "evt_01m5…",
+    "type": "email.delivered",
+    "created_at": "2026-10-18T14:03:22Z",
+    "data": {
+        "email_id": "em_01m5…",
+        "status": "delivered"
+    }
 }
 ```
 
@@ -44,26 +44,36 @@ import express from 'express';
 
 const app = express();
 
-app.post('/webhooks/pulsesend', express.raw({ type: 'application/json' }), (req, res) => {
-    const header = req.get('X-PulseSend-Signature') ?? '';
-    const parts = Object.fromEntries(header.split(',').map((p) => p.split('=')));
-    const t = Number(parts.t);
-    if (!t || Math.abs(Date.now() / 1000 - t) > 300) return res.sendStatus(400);
+app.post(
+    '/webhooks/pulsesend',
+    express.raw({ type: 'application/json' }),
+    (req, res) => {
+        const header = req.get('X-PulseSend-Signature') ?? '';
+        const parts = Object.fromEntries(
+            header.split(',').map((p) => p.split('=')),
+        );
+        const t = Number(parts.t);
+        if (!t || Math.abs(Date.now() / 1000 - t) > 300)
+            return res.sendStatus(400);
 
-    const expected = crypto
-        .createHmac('sha256', process.env.PULSESEND_WEBHOOK_SECRET)
-        .update(`${t}.${req.body}`)
-        .digest('hex');
-    const given = Buffer.from(parts.v1 ?? '', 'utf8');
-    const wanted = Buffer.from(expected, 'utf8');
-    if (given.length !== wanted.length || !crypto.timingSafeEqual(given, wanted)) {
-        return res.sendStatus(400);
-    }
+        const expected = crypto
+            .createHmac('sha256', process.env.PULSESEND_WEBHOOK_SECRET)
+            .update(`${t}.${req.body}`)
+            .digest('hex');
+        const given = Buffer.from(parts.v1 ?? '', 'utf8');
+        const wanted = Buffer.from(expected, 'utf8');
+        if (
+            given.length !== wanted.length ||
+            !crypto.timingSafeEqual(given, wanted)
+        ) {
+            return res.sendStatus(400);
+        }
 
-    const event = JSON.parse(req.body);
-    // queue(event) — dedupe on event.id
-    res.sendStatus(200);
-});
+        const event = JSON.parse(req.body);
+        // queue(event) — dedupe on event.id
+        res.sendStatus(200);
+    },
+);
 ```
 
 ### Laravel

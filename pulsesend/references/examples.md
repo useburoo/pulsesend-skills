@@ -13,7 +13,13 @@ export async function sendEmail({ to, subject, html, text, idempotencyKey }) {
             'Content-Type': 'application/json',
             'Idempotency-Key': idempotencyKey,
         },
-        body: JSON.stringify({ from: 'Acme <hello@acme.com>', to, subject, html, text }),
+        body: JSON.stringify({
+            from: 'Acme <hello@acme.com>',
+            to,
+            subject,
+            html,
+            text,
+        }),
     });
     const body = await res.json();
     if (!res.ok) {

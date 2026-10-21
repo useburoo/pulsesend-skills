@@ -60,14 +60,14 @@ pulsesend emails list --limit 100 --json | jq -r '.data[] | select(.status == "b
 
 Errors always go to stderr (even with `--json`, stdout stays empty) and show the API message, HTTP status, `code`, `field` (when one is invalid), the request id, a hint for common codes and a docs link. Check the exit code, then read stderr.
 
-| `code`                                | Likely fix                                                         |
-| ------------------------------------- | ------------------------------------------------------------------ |
-| `invalid_api_key` / `missing_api_key` | Set `PULSESEND_API_KEY` to a valid key                             |
-| `domain_not_verified`                 | Live key: the `--from` domain must be verified in the dashboard    |
-| `insufficient_credits`                | Buy credits on the dashboard's billing page                        |
-| `daily_limit_reached`                 | Free plan: 100 live recipients per UTC day                         |
-| `team_paused`                         | Too many bounces or complaints; the user must contact support      |
-| `rate_limited`                        | More than 10 requests/second; wait and retry                       |
+| `code`                                | Likely fix                                                      |
+| ------------------------------------- | --------------------------------------------------------------- |
+| `invalid_api_key` / `missing_api_key` | Set `PULSESEND_API_KEY` to a valid key                          |
+| `domain_not_verified`                 | Live key: the `--from` domain must be verified in the dashboard |
+| `insufficient_credits`                | Buy credits on the dashboard's billing page                     |
+| `daily_limit_reached`                 | Free plan: 100 live recipients per UTC day                      |
+| `team_paused`                         | Too many bounces or complaints; the user must contact support   |
+| `rate_limited`                        | More than 10 requests/second; wait and retry                    |
 
 ## Debugging a delivery
 

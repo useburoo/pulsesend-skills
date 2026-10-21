@@ -50,16 +50,16 @@ Every error is `{ "error": { "type", "code", "message", "param", "doc_url" } }`.
 
 The ones to handle explicitly:
 
-| Status | `code`                                      | What to do                                                  |
-| ------ | ------------------------------------------- | ----------------------------------------------------------- |
-| 401    | `invalid_api_key`, `missing_api_key`        | Configuration problem, don't retry                          |
-| 422    | `domain_not_verified`                       | Verify the sender domain in the dashboard (`param`: `from`) |
-| 403    | `team_paused`                               | Sending paused for bounces/complaints, don't retry          |
-| 402    | `insufficient_credits`                      | Buy credits; don't retry in a loop                          |
-| 422    | `invalid_parameter`, `missing_body`, …      | Fix the request; `param` names the field                    |
-| 429    | `rate_limited`                              | Wait `Retry-After` seconds, retry with the same idempotency key |
-| 429    | `daily_limit_reached`                       | Free plan cap (100/day UTC); retry tomorrow or buy credits  |
-| 5xx    | `internal_error`                            | Retry with backoff and the same idempotency key             |
+| Status | `code`                                 | What to do                                                      |
+| ------ | -------------------------------------- | --------------------------------------------------------------- |
+| 401    | `invalid_api_key`, `missing_api_key`   | Configuration problem, don't retry                              |
+| 422    | `domain_not_verified`                  | Verify the sender domain in the dashboard (`param`: `from`)     |
+| 403    | `team_paused`                          | Sending paused for bounces/complaints, don't retry              |
+| 402    | `insufficient_credits`                 | Buy credits; don't retry in a loop                              |
+| 422    | `invalid_parameter`, `missing_body`, … | Fix the request; `param` names the field                        |
+| 429    | `rate_limited`                         | Wait `Retry-After` seconds, retry with the same idempotency key |
+| 429    | `daily_limit_reached`                  | Free plan cap (100/day UTC); retry tomorrow or buy credits      |
+| 5xx    | `internal_error`                       | Retry with backoff and the same idempotency key                 |
 
 ## Limits
 

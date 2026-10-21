@@ -2,9 +2,9 @@
 
 Agent skills that teach coding assistants (Claude Code, and any tool that reads `SKILL.md` folders) how to integrate [PulseSend](https://pulse-send.jiordiviera.me) correctly.
 
-| Skill           | Covers                                                                                 |
-| --------------- | -------------------------------------------------------------------------------------- |
-| `pulsesend`     | Sending with the API, test and live keys, idempotency, error codes, limits, webhook signatures |
+| Skill           | Covers                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------ |
+| `pulsesend`     | Sending with the API, test and live keys, idempotency, error codes, limits, webhook signatures   |
 | `pulsesend-cli` | The `pulsesend` command: sending from a terminal or CI, `--json` scripting, debugging deliveries |
 
 ## Install
