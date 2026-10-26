@@ -70,7 +70,7 @@ app.post(
         }
 
         const event = JSON.parse(req.body);
-        // queue(event) — dedupe on event.id
+        // queue(event): dedupe on event.id
         res.sendStatus(200);
     },
 );
@@ -89,7 +89,7 @@ Route::post('/webhooks/pulsesend', function (Request $request) {
     $expected = hash_hmac('sha256', $t.'.'.$request->getContent(), config('services.pulsesend.webhook_secret'));
     abort_unless(hash_equals($expected, (string) ($parts['v1'] ?? '')), 400);
 
-    // dispatch(new HandlePulseSendEvent($request->json()->all())); — dedupe on id
+    // dispatch(new HandlePulseSendEvent($request->json()->all())); // dedupe on id
     return response()->noContent();
 })->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 ```
@@ -113,7 +113,7 @@ def pulsesend_webhook():
     if not hmac.compare_digest(expected, parts.get("v1", "")):
         abort(400)
     event = request.get_json()
-    # enqueue(event) — dedupe on event["id"]
+    # enqueue(event): dedupe on event["id"]
     return "", 200
 ```
 
