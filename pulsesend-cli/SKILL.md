@@ -36,7 +36,7 @@ pulsesend emails list [--limit 50] [--cursor <next_cursor>]
 pulsesend emails get em_01m5…
 ```
 
-`send` options: `--to`, `--cc`, `--bcc` (repeat or comma-separate, 50 recipients max), `--html`, `--html-file`, `--text`, `--text-file` (files accept `-` for stdin; at least one body), `--reply-to`, `--tag` (≤10), `--header "Name: value"` (≤20), `--idempotency-key`, `--wait`, `--wait-timeout <seconds>` (default 60).
+`send` options: `--to`, `--cc`, `--bcc` (repeat or comma-separate, 50 recipients max), `--html`, `--html-file`, `--text`, `--text-file` (files accept `-` for stdin; at least one body), `--reply-to`, `--tag` (≤10), `--header "Name: value"` (≤20), `--attach <file>` (≤20, sent as base64; the file name is kept, the path is not), `--idempotency-key`, `--wait`, `--wait-timeout <seconds>` (default 60).
 
 `--wait` polls every second until the email is delivered; exits 1 if it bounces, is marked as spam, fails, or times out. With a test key it stops as soon as the email is accepted.
 

@@ -35,6 +35,8 @@ Fields: `from` (bare address or `Name <address>`), `to` (string or list), `cc`, 
 
 The response is the email object: `id` (`em_…`), `status` (`queued`), `test_mode`, and the fields sent.
 
+Attachments (base64, `file_id` from the Files API, inline images with `cid:`): `references/attachments.md`.
+
 Framework snippets (Node, Laravel, Python, PHP, Go): `references/examples.md`.
 
 ## Read emails
