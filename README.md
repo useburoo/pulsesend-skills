@@ -12,7 +12,7 @@ Agent skills that teach coding assistants (Claude Code, and any tool that reads 
 Claude Code, for every project:
 
 ```bash
-git clone https://github.com/jiordiviera/pulsesend-skills.git ~/.local/share/pulsesend-skills
+git clone https://github.com/useburoo/pulsesend-skills.git ~/.local/share/pulsesend-skills
 ln -s ~/.local/share/pulsesend-skills/pulsesend ~/.claude/skills/pulsesend
 ln -s ~/.local/share/pulsesend-skills/pulsesend-cli ~/.claude/skills/pulsesend-cli
 ```

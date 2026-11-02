@@ -11,10 +11,10 @@ A single static binary that talks to the PulseSend API. Docs: https://docs.pulse
 
 ```bash
 curl -fsSL https://pulse-send.jiordiviera.me/install.sh | sh     # macOS, Linux → ~/.local/bin
-brew install jiordiviera/tap/pulsesend                          # Homebrew
+brew install useburoo/tap/pulsesend                          # Homebrew
 ```
 
-Windows: `pulsesend-<version>-x86_64-pc-windows-msvc.zip` from https://github.com/jiordiviera/pulsesend-cli/releases/latest.
+Windows: `pulsesend-<version>-x86_64-pc-windows-msvc.zip` from https://github.com/useburoo/pulsesend-cli/releases/latest.
 
 Check with `pulsesend --version`.
 
