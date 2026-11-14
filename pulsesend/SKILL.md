@@ -44,6 +44,10 @@ Framework snippets (Node, Laravel, Python, PHP, Go): `references/examples.md`.
 - `scheduled_at` (ISO 8601, future, ≤ 30 days) on `POST /emails` stores the email as `scheduled`; it leaves within a minute of that time. Credits are reserved at once. `PATCH /emails/{id}` `{ "scheduled_at": … }` moves it, `POST /emails/{id}/cancel` cancels it and refunds (only while `scheduled`, else `email_not_cancelable`).
 - `POST /emails/batch` takes a JSON **array** of up to 100 emails (same fields, `template` and `scheduled_at` allowed, no attachments) and returns `{ "object": "list", "data": [...] }` in the same order. All or nothing: on any error nothing is sent and `param` starts with the position (`3.to.0`). Use it instead of looping over `POST /emails` for bulk transactional sends; one `Idempotency-Key` covers the batch.
 
+## SMTP relay
+
+For apps that only speak SMTP: host `smtp.pulse-send.jiordiviera.me`, port 587 (STARTTLS) or 465 (TLS), username `pulsesend`, password = the API key. Same rules as the API (verified `From` domain, credits, limits). Envelope recipients not in To/Cc become bcc; `X-PulseSend-Tag` headers become tags; `Message-ID` is the idempotency key. Errors come back as SMTP codes (535 bad key, 550 refused, 451 retry) with the PulseSend code in the text. Prefer the HTTP API when you write new code.
+
 ## Read emails
 
 - `GET /emails?limit=20&cursor=…` returns `{ "object": "list", "data": [...], "has_more": bool, "next_cursor": "…" }`. `limit` is 1–100. Pass `next_cursor` as `cursor` for the next page.
