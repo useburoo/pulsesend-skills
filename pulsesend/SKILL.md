@@ -39,12 +39,17 @@ Attachments (base64, `file_id` from the Files API, inline images with `cid:`): `
 
 Framework snippets (Node, Laravel, Python, PHP, Go): `references/examples.md`.
 
+## Schedule and batch
+
+- `scheduled_at` (ISO 8601, future, ≤ 30 days) on `POST /emails` stores the email as `scheduled`; it leaves within a minute of that time. Credits are reserved at once. `PATCH /emails/{id}` `{ "scheduled_at": … }` moves it, `POST /emails/{id}/cancel` cancels it and refunds (only while `scheduled`, else `email_not_cancelable`).
+- `POST /emails/batch` takes a JSON **array** of up to 100 emails (same fields, `template` and `scheduled_at` allowed, no attachments) and returns `{ "object": "list", "data": [...] }` in the same order. All or nothing: on any error nothing is sent and `param` starts with the position (`3.to.0`). Use it instead of looping over `POST /emails` for bulk transactional sends; one `Idempotency-Key` covers the batch.
+
 ## Read emails
 
 - `GET /emails?limit=20&cursor=…` returns `{ "object": "list", "data": [...], "has_more": bool, "next_cursor": "…" }`. `limit` is 1–100. Pass `next_cursor` as `cursor` for the next page.
 - `GET /emails/{id}` returns one email with its status. After 30 days `html`, `text` and `headers` come back `null`; subject, recipients, status and events stay.
 
-Statuses: `queued` → `sent` → `delivered`; also `delivery_delayed`, `bounced`, `complained`, `failed` (credits refunded), `canceled`.
+Statuses: `scheduled` (until `scheduled_at`) → `queued` → `sent` → `delivered`; also `delivery_delayed`, `bounced`, `complained`, `failed` (credits refunded), `canceled`.
 
 ## Domains and webhooks
 

@@ -40,6 +40,9 @@ Statuses by `type`: `authentication_error` 401, `insufficient_credits` 402, `per
 | `internal_error`              | Server error                                               | Yes, with backoff                        |
 | `attachment_content_mismatch` | The file content does not match its extension              | No, fix the file                         |
 | `attachment_type_not_allowed` | Mail providers block this file type (executables, scripts) | No, zip it or send a link                |
+| `batch_too_large`             | More than 100 emails in `POST /emails/batch`               | No, split the batch                      |
+| `email_not_cancelable`        | Cancel on an email that is no longer `scheduled`           | No                                       |
+| `email_not_scheduled`         | Reschedule on an email that is no longer `scheduled`       | No                                       |
 | `domain_not_allowed`          | Free mailbox provider (gmail.com…) or a PulseSend domain   | No, use a domain you own                 |
 | `domain_exists`               | The domain is already in this team                         | No, `GET /domains/{name}` instead        |
 | `domain_taken`                | Another account uses this domain                           | No, contact support                      |
