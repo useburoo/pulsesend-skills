@@ -48,6 +48,10 @@ Framework snippets (Node, Laravel, Python, PHP, Go): `references/examples.md`.
 
 For apps that only speak SMTP: host `smtp.pulse-send.jiordiviera.me`, port 587 (STARTTLS) or 465 (TLS), username `pulsesend`, password = the API key. Same rules as the API (verified `From` domain, credits, limits). Envelope recipients not in To/Cc become bcc; `X-PulseSend-Tag` headers become tags; `Message-ID` is the idempotency key. Errors come back as SMTP codes (535 bad key, 550 refused, 451 retry) with the PulseSend code in the text. Prefer the HTTP API when you write new code.
 
+## Open and click tracking
+
+Off by default, and best left off for OTPs and receipts (deliverability). Per domain: `PATCH /domains/{id or name}` `{ "track_opens": true, "track_clicks": true }` (`domains:write`). Per email, overriding the domain: `track_opens` / `track_clicks` on `POST /emails` (and in batches). PulseSend adds a pixel and routes `http(s)` links through `/t/c/…` at send time; the stored HTML is unchanged, `data-pulsesend-ignore` on an `<a>` skips it. `GET /emails/{id}` returns `tracking` (`opens`, `clicks`, `opened_at`, `clicked_at`, `open_count`, `click_count`). Webhooks `email.opened` (first open) and `email.clicked` (first click per link, with `url`). Opens are estimates (Apple Mail prefetch); scanners and bots are not counted.
+
 ## Read emails
 
 - `GET /emails?limit=20&cursor=…` returns `{ "object": "list", "data": [...], "has_more": bool, "next_cursor": "…" }`. `limit` is 1–100. Pass `next_cursor` as `cursor` for the next page.
@@ -86,7 +90,7 @@ The ones to handle explicitly:
 
 ## Webhooks
 
-PulseSend POSTs `email.sent`, `email.delivered`, `email.delivery_delayed`, `email.bounced`, `email.complained`, `email.failed`, `email.canceled` (and `webhook.test`) to your HTTPS endpoint, signed with `X-PulseSend-Signature: t=<unix>,v1=<hex>`. Verification code in several languages: `references/webhooks.md`.
+PulseSend POSTs `email.sent`, `email.delivered`, `email.delivery_delayed`, `email.bounced`, `email.complained`, `email.failed`, `email.canceled`, `email.opened`, `email.clicked` (and `webhook.test`) to your HTTPS endpoint, signed with `X-PulseSend-Signature: t=<unix>,v1=<hex>`. Verification code in several languages: `references/webhooks.md`.
 
 ## Testing an integration
 
