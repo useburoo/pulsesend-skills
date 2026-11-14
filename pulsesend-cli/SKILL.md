@@ -38,7 +38,7 @@ pulsesend send … --scheduled-at 2026-11-20T09:00:00Z
 pulsesend emails cancel em_01m5… | emails reschedule em_01m5… --at 2026-11-21T09:00:00Z
 pulsesend batch emails.json        # JSON array of ≤100 emails (API fields, no attachments); "-" reads stdin; all or nothing
 pulsesend domains add acme.com | list | get acme.com | verify acme.com [--wait] | remove acme.com [--yes]
-pulsesend domains update acme.com [--track-opens on|off] [--track-clicks on|off]
+pulsesend domains update acme.com [--track-opens on|off] [--track-clicks on|off] [--tracking-domain links.acme.com|off]
 pulsesend webhooks add --url https://… [--event email.delivered,…] | list | get wh_… | test wh_…
 pulsesend webhooks update wh_… [--url …] [--event …] [--enable|--disable] | rotate-secret wh_… [--yes] | remove wh_… [--yes]
 ```

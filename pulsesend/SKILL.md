@@ -52,6 +52,8 @@ For apps that only speak SMTP: host `smtp.pulse-send.jiordiviera.me`, port 587 (
 
 Off by default, and best left off for OTPs and receipts (deliverability). Per domain: `PATCH /domains/{id or name}` `{ "track_opens": true, "track_clicks": true }` (`domains:write`). Per email, overriding the domain: `track_opens` / `track_clicks` on `POST /emails` (and in batches). PulseSend adds a pixel and routes `http(s)` links through `/t/c/…` at send time; the stored HTML is unchanged, `data-pulsesend-ignore` on an `<a>` skips it. `GET /emails/{id}` returns `tracking` (`opens`, `clicks`, `opened_at`, `clicked_at`, `open_count`, `click_count`). Webhooks `email.opened` (first open) and `email.clicked` (first click per link, with `url`). Opens are estimates (Apple Mail prefetch); scanners and bots are not counted.
 
+Custom tracking domain: `PATCH /domains/{id or name}` `{ "tracking_domain": "links.acme.com" }` (a subdomain of the domain's zone, not the domain itself or `send.`; `null` removes it). Publish the CNAME in `tracking.domain_record` (`links` → `track.pulse-send.jiordiviera.me`, DNS only at Cloudflare). `tracking.domain_status`: `pending` (CNAME not found) → `securing` (HTTPS certificate on its way) → `active`. Only emails sent once it is `active` use it; earlier emails keep their links. `POST /domains/{id}/verify` checks it now. Error `tracking_domain_taken` if another domain uses it.
+
 ## Read emails
 
 - `GET /emails?limit=20&cursor=…` returns `{ "object": "list", "data": [...], "has_more": bool, "next_cursor": "…" }`. `limit` is 1–100. Pass `next_cursor` as `cursor` for the next page.
