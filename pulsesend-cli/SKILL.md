@@ -34,7 +34,12 @@ pulsesend send --from "Acme <hello@acme.com>" --to jane@example.com \
   --subject "Your code is 482910" --text "Your code is 482910"
 pulsesend emails list [--limit 50] [--cursor <next_cursor>]
 pulsesend emails get em_01m5…
+pulsesend domains add acme.com | list | get acme.com | verify acme.com [--wait] | remove acme.com [--yes]
+pulsesend webhooks add --url https://… [--event email.delivered,…] | list | get wh_… | test wh_…
+pulsesend webhooks update wh_… [--url …] [--event …] [--enable|--disable] | rotate-secret wh_… [--yes] | remove wh_… [--yes]
 ```
+
+`domains` needs a key with `domains:write` (`domains:read` for reads); `webhooks` needs `webhooks:read` and `webhooks:write`. Neither is in the default scopes. `domains verify` exits 1 until DKIM is found; `--wait` retries every 15 s (`--wait-timeout`, default 600). The webhook secret is printed only by `add` and `rotate-secret`. `remove` and `rotate-secret` ask for confirmation: pass `--yes` when not in a terminal.
 
 `send` options: `--to`, `--cc`, `--bcc` (repeat or comma-separate, 50 recipients max), `--html`, `--html-file`, `--text`, `--text-file` (files accept `-` for stdin; at least one body), `--reply-to`, `--tag` (≤10), `--header "Name: value"` (≤20), `--attach <file>` (≤20, sent as base64; the file name is kept, the path is not), `--idempotency-key`, `--wait`, `--wait-timeout <seconds>` (default 60).
 

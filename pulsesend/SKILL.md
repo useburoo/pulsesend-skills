@@ -46,22 +46,30 @@ Framework snippets (Node, Laravel, Python, PHP, Go): `references/examples.md`.
 
 Statuses: `queued` → `sent` → `delivered`; also `delivery_delayed`, `bounced`, `complained`, `failed` (credits refunded), `canceled`.
 
+## Domains and webhooks
+
+Both can be managed by API, with scopes that new keys don't get by default.
+
+- `domains:write`: `POST /domains` `{ "name": "acme.com" }` returns the domain with `records` (`type`, `name`, short `host`, `value`, `status` `found`/`missing`/`not_checked`). After publishing them, `POST /domains/{id or name}/verify` checks now; `status` becomes `verified` once DKIM resolves. `GET /domains`, `GET /domains/{id or name}`, `DELETE /domains/{id or name}` (`domains:read` for reads).
+- `webhooks:write`: `POST /webhooks` `{ "url": "https://…", "events": ["email.delivered"] }` (or `["*"]`) returns the endpoint **with `secret`, shown only here and on `POST /webhooks/{id}/rotate-secret`**: store it immediately. `PATCH /webhooks/{id}` (`url`, `events`, `enabled`), `POST /webhooks/{id}/test`, `DELETE /webhooks/{id}`. Reads need `webhooks:read`.
+
 ## Errors
 
 Every error is `{ "error": { "type", "code", "message", "param", "doc_url" } }`. Branch on `code`, never on `message`. Each response carries an `X-Request-Id` header worth logging. Full table and handling advice: `references/errors.md`.
 
 The ones to handle explicitly:
 
-| Status | `code`                                 | What to do                                                      |
-| ------ | -------------------------------------- | --------------------------------------------------------------- |
-| 401    | `invalid_api_key`, `missing_api_key`   | Configuration problem, don't retry                              |
-| 422    | `domain_not_verified`                  | Verify the sender domain in the dashboard (`param`: `from`)     |
-| 403    | `team_paused`                          | Sending paused for bounces/complaints, don't retry              |
-| 402    | `insufficient_credits`                 | Buy credits; don't retry in a loop                              |
-| 422    | `invalid_parameter`, `missing_body`, … | Fix the request; `param` names the field                        |
-| 429    | `rate_limited`                         | Wait `Retry-After` seconds, retry with the same idempotency key |
-| 429    | `daily_limit_reached`                  | Free plan cap (100/day UTC); retry tomorrow or buy credits      |
-| 5xx    | `internal_error`                       | Retry with backoff and the same idempotency key                 |
+| Status | `code`                                                                                                 | What to do                                                      |
+| ------ | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| 401    | `invalid_api_key`, `missing_api_key`                                                                   | Configuration problem, don't retry                              |
+| 422    | `domain_not_verified`                                                                                  | Verify the sender domain in the dashboard (`param`: `from`)     |
+| 403    | `team_paused`                                                                                          | Sending paused for bounces/complaints, don't retry              |
+| 402    | `insufficient_credits`                                                                                 | Buy credits; don't retry in a loop                              |
+| 422    | `invalid_parameter`, `missing_body`, …                                                                 | Fix the request; `param` names the field                        |
+| 429    | `rate_limited`                                                                                         | Wait `Retry-After` seconds, retry with the same idempotency key |
+| 429    | `daily_limit_reached`                                                                                  | Free plan cap (100/day UTC); retry tomorrow or buy credits      |
+| 422    | `domain_exists`, `domain_taken`, `domain_not_allowed`, `domain_limit_reached`, `webhook_limit_reached` | Domain or endpoint can't be added; read `message` to the user   |
+| 5xx    | `internal_error`                                                                                       | Retry with backoff and the same idempotency key                 |
 
 ## Limits
 
