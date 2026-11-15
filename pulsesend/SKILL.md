@@ -48,6 +48,10 @@ Framework snippets (Node, Laravel, Python, PHP, Go): `references/examples.md`.
 
 For apps that only speak SMTP: host `smtp.pulse-send.jiordiviera.me`, port 587 (STARTTLS) or 465 (TLS), username `pulsesend`, password = the API key. Same rules as the API (verified `From` domain, credits, limits). Envelope recipients not in To/Cc become bcc; `X-PulseSend-Tag` headers become tags; `Message-ID` is the idempotency key. Errors come back as SMTP codes (535 bad key, 550 refused, 451 retry) with the PulseSend code in the text. Prefer the HTTP API when you write new code.
 
+## MCP server
+
+PulseSend also runs a remote MCP server at `https://pulse-send.jiordiviera.me/mcp`, authenticated with OAuth (no API key to paste). The user picks a team, "Test only" or "Live and test", and the permissions. Tools: `send_email` (test by default, `mode: "live"` only if granted), `cancel_email`, `list_emails`, `get_email`, `list_domains`, `get_domain`, `add_domain`, `verify_domain`, `list_templates`, `get_template`, `render_template`, `create_template`, `update_template`, `publish_template`, `list_webhooks`, `create_webhook`. They call the public API, so errors and limits are the same. Connections are listed and revoked in Settings › Connected apps. Guide: https://docs.pulse-send.jiordiviera.me/guides/mcp
+
 ## Open and click tracking
 
 Off by default, and best left off for OTPs and receipts (deliverability). Per domain: `PATCH /domains/{id or name}` `{ "track_opens": true, "track_clicks": true }` (`domains:write`). Per email, overriding the domain: `track_opens` / `track_clicks` on `POST /emails` (and in batches). PulseSend adds a pixel and routes `http(s)` links through `/t/c/…` at send time; the stored HTML is unchanged, `data-pulsesend-ignore` on an `<a>` skips it. `GET /emails/{id}` returns `tracking` (`opens`, `clicks`, `opened_at`, `clicked_at`, `open_count`, `click_count`). Webhooks `email.opened` (first open) and `email.clicked` (first click per link, with `url`). Opens are estimates (Apple Mail prefetch); scanners and bots are not counted.
