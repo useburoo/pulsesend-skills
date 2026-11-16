@@ -44,6 +44,13 @@ Framework snippets (Node, Laravel, Python, PHP, Go): `references/examples.md`.
 - `scheduled_at` (ISO 8601, future, ≤ 30 days) on `POST /emails` stores the email as `scheduled`; it leaves within a minute of that time. Credits are reserved at once. `PATCH /emails/{id}` `{ "scheduled_at": … }` moves it, `POST /emails/{id}/cancel` cancels it and refunds (only while `scheduled`, else `email_not_cancelable`).
 - `POST /emails/batch` takes a JSON **array** of up to 100 emails (same fields, `template` and `scheduled_at` allowed, no attachments) and returns `{ "object": "list", "data": [...] }` in the same order. All or nothing: on any error nothing is sent and `param` starts with the position (`3.to.0`). Use it instead of looping over `POST /emails` for bulk transactional sends; one `Idempotency-Key` covers the batch.
 
+## Laravel and PHP
+
+- Laravel: `composer require pulsesend/pulsesend-laravel`, `PULSESEND_API_KEY` in `.env`, a mailer `'pulsesend' => ['transport' => 'pulsesend']` in `config/mail.php`, then `MAIL_MAILER=pulsesend`. Existing Mailables and notifications need no change: addresses, bodies, attachments (inline ones keep their `content_id`), custom headers and the envelope `tags` are sent. A `PulseSend-Idempotency-Key` header on the message becomes the request's `Idempotency-Key`. The id comes back as `$sent->getMessageId()` (`em_…`).
+- Use the `PulseSend` facade (`PulseSend::emails()->send([...])`, `domains()`, `webhooks()`, `templates()`) for templates, `scheduled_at`, batches and tracking options: a Mailable can't express them.
+- Webhooks: the package answers `POST /pulsesend/webhook`, checks `X-PulseSend-Signature` when `PULSESEND_WEBHOOK_SECRET` is set (403 otherwise), and dispatches `PulseSend\Laravel\Events\EmailDelivered`, `EmailBounced`, … (`$event->payload` is the full body), plus `WebhookReceived` for every call. No CSRF exception needed.
+- Plain PHP: `composer require pulsesend/pulsesend-php`, `PulseSend\PulseSend::client($key)->emails->send([...], ['idempotency_key' => …])`; errors throw `PulseSend\Exception\*` with `errorCode`, `param`, `docUrl`; `PulseSend\Webhook::constructEvent($body, $signature, $secret)` verifies webhooks.
+
 ## SMTP relay
 
 For apps that only speak SMTP: host `smtp.pulse-send.jiordiviera.me`, port 587 (STARTTLS) or 465 (TLS), username `pulsesend`, password = the API key. Same rules as the API (verified `From` domain, credits, limits). Envelope recipients not in To/Cc become bcc; `X-PulseSend-Tag` headers become tags; `Message-ID` is the idempotency key. Errors come back as SMTP codes (535 bad key, 550 refused, 451 retry) with the PulseSend code in the text. Prefer the HTTP API when you write new code.
