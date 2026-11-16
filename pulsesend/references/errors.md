@@ -16,38 +16,39 @@ Shape:
 
 Branch on `code`. `param` names the offending field when there is one. `doc_url` points to the explanation. Log the `X-Request-Id` response header: support needs it.
 
-Statuses by `type`: `authentication_error` 401, `insufficient_credits` 402, `permission_error` 403 (`missing_scope`, `team_paused`), `not_found` 404, `idempotency_error` 409, `validation_error` 422 (including `domain_not_verified`, `missing_body`, `too_many_recipients`, `message_too_large`, `all_recipients_suppressed`), `rate_limit_error` 429 (`rate_limited`, `daily_limit_reached`), `api_error` 500.
+Statuses by `type`: `authentication_error` 401, `insufficient_credits` 402, `permission_error` 403 (`missing_scope`, `team_paused`, `domain_not_allowed_for_key`), `not_found` 404, `idempotency_error` 409, `validation_error` 422 (including `domain_not_verified`, `missing_body`, `too_many_recipients`, `message_too_large`, `all_recipients_suppressed`), `rate_limit_error` 429 (`rate_limited`, `daily_limit_reached`), `api_error` 500.
 
-| `code`                        | Meaning                                                    | Retry?                                   |
-| ----------------------------- | ---------------------------------------------------------- | ---------------------------------------- |
-| `missing_api_key`             | No `Authorization: Bearer …` header                        | No, fix config                           |
-| `invalid_api_key`             | Unknown or revoked key                                     | No, fix config                           |
-| `missing_scope`               | The key lacks the scope for this route                     | No, create a key with the scope          |
-| `insufficient_credits`        | Not enough credits for all recipients                      | No, buy credits                          |
-| `team_paused`                 | Sending paused (bounce rate > 4 % or complaints > 0.08 %)  | No, contact support after cleaning lists |
-| `resource_missing`            | Unknown id (`GET /emails/{id}`)                            | No                                       |
-| `idempotency_key_reused`      | Same `Idempotency-Key` with a different body               | No, use a new key for a new intent       |
-| `idempotency_in_progress`     | Same key while the first request still runs                | Yes, after a short wait                  |
-| `idempotency_key_too_long`    | Key over 255 characters                                    | No                                       |
-| `invalid_parameter`           | A field is invalid; see `param`                            | No, fix the request                      |
-| `missing_body`                | Neither `html` nor `text`                                  | No                                       |
-| `too_many_recipients`         | More than 50 across `to`, `cc`, `bcc`                      | No, split the email                      |
-| `message_too_large`           | Over 10 MB                                                 | No                                       |
-| `domain_not_verified`         | Live key and `from` not on a verified domain               | No, verify the domain                    |
-| `all_recipients_suppressed`   | Every recipient bounced or complained before               | No                                       |
-| `rate_limited`                | Over 10 requests/second for this key                       | Yes, after `Retry-After` seconds         |
-| `daily_limit_reached`         | Free plan: 100 live recipients per UTC day                 | Tomorrow, or after buying credits        |
-| `internal_error`              | Server error                                               | Yes, with backoff                        |
-| `attachment_content_mismatch` | The file content does not match its extension              | No, fix the file                         |
-| `attachment_type_not_allowed` | Mail providers block this file type (executables, scripts) | No, zip it or send a link                |
-| `batch_too_large`             | More than 100 emails in `POST /emails/batch`               | No, split the batch                      |
-| `email_not_cancelable`        | Cancel on an email that is no longer `scheduled`           | No                                       |
-| `email_not_scheduled`         | Reschedule on an email that is no longer `scheduled`       | No                                       |
-| `domain_not_allowed`          | Free mailbox provider (gmail.com…) or a PulseSend domain   | No, use a domain you own                 |
-| `domain_exists`               | The domain is already in this team                         | No, `GET /domains/{name}` instead        |
-| `domain_taken`                | Another account uses this domain                           | No, contact support                      |
-| `domain_limit_reached`        | 1 domain on the free plan, 10 otherwise                    | No, delete one or buy credits            |
-| `webhook_limit_reached`       | 10 webhook endpoints per team                              | No, delete one                           |
+| `code`                        | Meaning                                                       | Retry?                                                    |
+| ----------------------------- | ------------------------------------------------------------- | --------------------------------------------------------- |
+| `missing_api_key`             | No `Authorization: Bearer …` header                           | No, fix config                                            |
+| `invalid_api_key`             | Unknown or revoked key                                        | No, fix config                                            |
+| `missing_scope`               | The key lacks the scope for this route                        | No, create a key with the scope                           |
+| `insufficient_credits`        | Not enough credits for all recipients                         | No, buy credits                                           |
+| `team_paused`                 | Sending paused (bounce rate > 4 % or complaints > 0.08 %)     | No, contact support after cleaning lists                  |
+| `domain_not_allowed_for_key`  | The key is limited to other sending domains (`param`: `from`) | No, send from one of the key's domains or use another key |
+| `resource_missing`            | Unknown id (`GET /emails/{id}`)                               | No                                                        |
+| `idempotency_key_reused`      | Same `Idempotency-Key` with a different body                  | No, use a new key for a new intent                        |
+| `idempotency_in_progress`     | Same key while the first request still runs                   | Yes, after a short wait                                   |
+| `idempotency_key_too_long`    | Key over 255 characters                                       | No                                                        |
+| `invalid_parameter`           | A field is invalid; see `param`                               | No, fix the request                                       |
+| `missing_body`                | Neither `html` nor `text`                                     | No                                                        |
+| `too_many_recipients`         | More than 50 across `to`, `cc`, `bcc`                         | No, split the email                                       |
+| `message_too_large`           | Over 10 MB                                                    | No                                                        |
+| `domain_not_verified`         | Live key and `from` not on a verified domain                  | No, verify the domain                                     |
+| `all_recipients_suppressed`   | Every recipient bounced or complained before                  | No                                                        |
+| `rate_limited`                | Over 10 requests/second for this key                          | Yes, after `Retry-After` seconds                          |
+| `daily_limit_reached`         | Free plan: 100 live recipients per UTC day                    | Tomorrow, or after buying credits                         |
+| `internal_error`              | Server error                                                  | Yes, with backoff                                         |
+| `attachment_content_mismatch` | The file content does not match its extension                 | No, fix the file                                          |
+| `attachment_type_not_allowed` | Mail providers block this file type (executables, scripts)    | No, zip it or send a link                                 |
+| `batch_too_large`             | More than 100 emails in `POST /emails/batch`                  | No, split the batch                                       |
+| `email_not_cancelable`        | Cancel on an email that is no longer `scheduled`              | No                                                        |
+| `email_not_scheduled`         | Reschedule on an email that is no longer `scheduled`          | No                                                        |
+| `domain_not_allowed`          | Free mailbox provider (gmail.com…) or a PulseSend domain      | No, use a domain you own                                  |
+| `domain_exists`               | The domain is already in this team                            | No, `GET /domains/{name}` instead                         |
+| `domain_taken`                | Another account uses this domain                              | No, contact support                                       |
+| `domain_limit_reached`        | 1 domain on the free plan, 10 otherwise                       | No, delete one or buy credits                             |
+| `webhook_limit_reached`       | 10 webhook endpoints per team                                 | No, delete one                                            |
 
 ## Retry policy
 
