@@ -46,9 +46,9 @@ Framework snippets (Node, Laravel, Python, PHP, Go): `references/examples.md`.
 
 ## Laravel and PHP
 
-- Laravel: `composer require pulsesend/pulsesend-laravel`, `PULSESEND_API_KEY` in `.env`, a mailer `'pulsesend' => ['transport' => 'pulsesend']` in `config/mail.php`, then `MAIL_MAILER=pulsesend`. Existing Mailables and notifications need no change: addresses, bodies, attachments (inline ones keep their `content_id`), custom headers and the envelope `tags` are sent. A `PulseSend-Idempotency-Key` header on the message becomes the request's `Idempotency-Key`. The id comes back as `$sent->getMessageId()` (`em_…`).
+- Laravel: `composer require pulsesend/pulsesend-laravel` (an empty key only fails at send time, not at boot), `PULSESEND_API_KEY` in `.env`, a mailer `'pulsesend' => ['transport' => 'pulsesend']` in `config/mail.php`, then `MAIL_MAILER=pulsesend`. Existing Mailables and notifications need no change: addresses, bodies, attachments (inline ones keep their `content_id`), custom headers and the envelope `tags` are sent. A `PulseSend-Idempotency-Key` header on the message becomes the request's `Idempotency-Key`. The id comes back as `$sent->getMessageId()` (`em_…`).
 - Use the `PulseSend` facade (`PulseSend::emails()->send([...])`, `domains()`, `webhooks()`, `templates()`) for templates, `scheduled_at`, batches and tracking options: a Mailable can't express them.
-- Webhooks: the package answers `POST /pulsesend/webhook`, checks `X-PulseSend-Signature` when `PULSESEND_WEBHOOK_SECRET` is set (403 otherwise), and dispatches `PulseSend\Laravel\Events\EmailDelivered`, `EmailBounced`, … (`$event->payload` is the full body), plus `WebhookReceived` for every call. No CSRF exception needed.
+- Webhooks: once `PULSESEND_WEBHOOK_SECRET` is set, the package answers `POST /pulsesend/webhook` (no secret: no route, unless `PULSESEND_ROUTES=true`), checks `X-PulseSend-Signature` (403 when wrong), and dispatches `PulseSend\Laravel\Events\EmailDelivered`, `EmailBounced`, … (`$event->payload` is the full body), plus `WebhookReceived` for every call. No CSRF exception needed.
 - Plain PHP: `composer require pulsesend/pulsesend-php`, `PulseSend\PulseSend::client($key)->emails->send([...], ['idempotency_key' => …])`; errors throw `PulseSend\Exception\*` with `errorCode`, `param`, `docUrl`; `PulseSend\Webhook::constructEvent($body, $signature, $secret)` verifies webhooks.
 
 ## SMTP relay
@@ -85,17 +85,18 @@ Every error is `{ "error": { "type", "code", "message", "param", "doc_url" } }`.
 
 The ones to handle explicitly:
 
-| Status | `code`                                                                                                 | What to do                                                      |
-| ------ | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| 401    | `invalid_api_key`, `missing_api_key`                                                                   | Configuration problem, don't retry                              |
-| 422    | `domain_not_verified`                                                                                  | Verify the sender domain in the dashboard (`param`: `from`)     |
-| 403    | `team_paused`                                                                                          | Sending paused for bounces/complaints, don't retry              |
-| 402    | `insufficient_credits`                                                                                 | Buy credits; don't retry in a loop                              |
-| 422    | `invalid_parameter`, `missing_body`, …                                                                 | Fix the request; `param` names the field                        |
-| 429    | `rate_limited`                                                                                         | Wait `Retry-After` seconds, retry with the same idempotency key |
-| 429    | `daily_limit_reached`                                                                                  | Free plan cap (100/day UTC); retry tomorrow or buy credits      |
-| 422    | `domain_exists`, `domain_taken`, `domain_not_allowed`, `domain_limit_reached`, `webhook_limit_reached` | Domain or endpoint can't be added; read `message` to the user   |
-| 5xx    | `internal_error`                                                                                       | Retry with backoff and the same idempotency key                 |
+| Status | `code`                                                                                                 | What to do                                                                                    |
+| ------ | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| 401    | `invalid_api_key`, `missing_api_key`                                                                   | Configuration problem, don't retry                                                            |
+| 422    | `domain_not_verified`                                                                                  | Verify the sender domain in the dashboard (`param`: `from`)                                   |
+| 403    | `team_paused`                                                                                          | Sending paused for bounces/complaints, don't retry                                            |
+| 403    | `domain_not_allowed_for_key`                                                                           | The key is limited to other sending domains (`param`: `from`); use one of them or another key |
+| 402    | `insufficient_credits`                                                                                 | Buy credits; don't retry in a loop                                                            |
+| 422    | `invalid_parameter`, `missing_body`, …                                                                 | Fix the request; `param` names the field                                                      |
+| 429    | `rate_limited`                                                                                         | Wait `Retry-After` seconds, retry with the same idempotency key                               |
+| 429    | `daily_limit_reached`                                                                                  | Free plan cap (100/day UTC); retry tomorrow or buy credits                                    |
+| 422    | `domain_exists`, `domain_taken`, `domain_not_allowed`, `domain_limit_reached`, `webhook_limit_reached` | Domain or endpoint can't be added; read `message` to the user                                 |
+| 5xx    | `internal_error`                                                                                       | Retry with backoff and the same idempotency key                                               |
 
 ## Limits
 
